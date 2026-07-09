@@ -1,9 +1,12 @@
 # Forge Engine — MCP connector
 
-**The living design layer for AI-native teams.** Forge keeps your design intent
-(vision, systems, milestones) and your real codebase in sync — so coding agents
-build from a shared source-of-truth instead of drifting, and your team stays
-aligned while agents work in parallel.
+**The living design doc your AI coding agents read from — and write back to.**
+
+Your agent doesn't have a drift problem. Your *plan* does — it lives in your head
+and a doc no agent ever reads. Forge makes the plan machine-readable: structured
+Systems (Goal / Boundary / Acceptance) + milestones that agents read over MCP
+*before* they build, then propose changes back to — non-destructively. Design and
+build stay in sync, and your team stays aligned while agents work in parallel.
 
 🌐 **[forgeengine.app](https://forgeengine.app/)**
 
