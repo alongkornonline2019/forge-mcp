@@ -10,9 +10,13 @@ question, coder or not. A markdown file works for one dev; a team needs Forge.
 
 🌐 **[forgeengine.app](https://forgeengine.app/)**
 
-> This repository is the public home of Forge's **MCP connector** — its registry
-> manifest ([`server.json`](./server.json)) and connection docs. The Forge
-> application itself is developed in a separate private repository.
+> **What's in this repository.** This is the public home of Forge's **MCP
+> connector**: the source of the Forge Runtime CLI (`@forgeengine/cli`, MIT) and
+> the registry manifest ([`server.json`](./server.json)). The Forge application
+> and its hosted MCP server are developed in a separate private repository — so
+> this repo is the part that runs **on your machine**, published openly precisely
+> because it is the part that holds your token. See
+> [Security & privacy](#security--privacy).
 
 > **Not to be confused with** Laravel Forge (PHP server management), Atlassian
 > Forge / Autodesk Forge (app & CAD platforms), SourceForge (software hosting),
@@ -21,11 +25,92 @@ question, coder or not. A markdown file works for one dev; a team needs Forge.
 
 ---
 
-## Connect a coding agent (MCP)
+## Quick start
 
-Forge exposes your project's design to AI clients over the **Model Context
-Protocol**. An agent reads your Systems, milestones, and vision, then **proposes**
-changes back to your Inbox — non-destructively, for you to adopt.
+**Install once. Log in once. Connect any MCP client with one line.**
+
+```bash
+npm i -g @forgeengine/cli
+```
+
+Requires Node ≥ 18. The installed command is `forge`.
+
+```bash
+forge login
+```
+
+Paste your **Account Key** (Forge → *Connect Agent* → *Generate an account key*).
+The Runtime exchanges it for a per-device token and stores **only that** — your
+Account Key is never written to disk. Revoke a device anytime from *Connect
+Agent → Devices*.
+
+Then add this to any MCP client's config — **no key**, in every project folder:
+
+```json
+{ "command": "forge", "args": ["mcp"] }
+```
+
+Restart the client. Done.
+
+### Commands
+
+| | |
+|---|---|
+| `forge login` | Register this machine |
+| `forge logout` | Remove the local device token |
+| `forge mcp` | Run as a stdio MCP server (clients spawn this) |
+| `forge doctor` | Check runtime + connection |
+| `forge version` | Print version |
+
+### How it works
+
+```
+Claude Code ┐
+Cursor ─────┤
+Codex ──────┼─►  forge (Runtime)  ─►  Hosted Forge MCP  ─►  Tools
+VS Code ────┘        │
+                     └─ token.json (0600) + config.json  (~/.config/forge)
+```
+
+The Runtime is a **thin shim**: no tools, no business logic, no cache, no
+telemetry. All tools live server-side, so new features ship without a client
+update.
+
+---
+
+## Security & privacy
+
+The Runtime is the only Forge code that runs on your machine, which is why it is
+open source — you can read every line that touches your credentials (it's under
+500 lines).
+
+- **Your Account Key is never persisted.** `forge login` POSTs it once to mint a
+  per-device token, then discards it. Only the device token is written to disk.
+- **The device token is stored at `0600`** in `~/.config/forge/token.json`
+  (`%APPDATA%\Forge\token.json` on Windows), separate from non-secret
+  `config.json`. Token access goes through one seam, so an OS-keychain backend can
+  replace the file without changing callers.
+- **Scoped and revocable.** A device token is per-machine — revoke one from
+  *Connect Agent → Devices* without touching your other machines or your Account
+  Key.
+- **It only talks to Forge.** The token rides as a `Bearer` header to the
+  configured Forge endpoint and nowhere else. No analytics, no third-party calls.
+- **One dependency:** the official `@modelcontextprotocol/sdk`.
+- **Headless-friendly:** set `FORGE_TOKEN` in CI instead of logging in.
+
+### Config
+
+- `~/.config/forge/config.json` (Linux/macOS) · `%APPDATA%\Forge\config.json`
+  (Windows) — non-secret
+- `~/.config/forge/token.json` — the device token, `0600`
+- Env overrides: `FORGE_TOKEN`, `FORGE_CONFIG`, `FORGE_SERVER`, `FORGE_PROJECT`
+
+---
+
+## Alternative: connect directly to the hosted endpoint
+
+If you'd rather not install anything, most clients can point straight at the
+hosted server (you'll paste your key into each client instead of once).
 
 - **Type:** remote / hosted MCP server (Streamable HTTP)
 - **Endpoint:** `https://mmvdabzadclebfxyzudg.supabase.co/functions/v1/forge-mcp`
@@ -97,6 +182,12 @@ Full descriptions of every tool: **[forgeengine.app/llms-full.txt](https://forge
 
 ## FAQ
 
+**Is Forge open source?**
+The Runtime in this repo is, under MIT — that's the piece that runs locally and
+handles your token, so you can audit it. The Forge web app and hosted MCP server
+are closed source. Your design data is yours: export it any time, and a cancelled
+plan freezes to read + export rather than being deleted.
+
 **How is this different from a CLAUDE.md / AGENTS.md file?**
 A markdown file is single-player — one repo, no task claims, no impact analysis,
 invisible to non-coders. Forge is the team version: agents claim tasks so parallel
@@ -108,6 +199,13 @@ Those hold documents and tickets written for humans — coding agents don't read
 them before building. Forge's design is machine-readable over MCP: agents build
 against the actual spec (Goal / Boundary / Acceptance) and report reality back.
 
+**How is it different from an AI "memory" tool?**
+Memory recalls what was *said*, retrieved by similarity — best-effort, and it
+can't state a constraint the agent must not cross. Forge holds what was *agreed*:
+Systems with an explicit Boundary and Acceptance criteria, read because the
+workflow requires it, mapped to the files that implement them, with changes gated
+through a human-reviewed Inbox. They're complementary, not competing.
+
 **Which agents work with it?**
 Any MCP client — Claude Code, Cursor, GitHub Copilot, Cline and others.
 
@@ -116,3 +214,7 @@ Any MCP client — Claude Code, Cursor, GitHub Copilot, Cline and others.
 - Product: **[forgeengine.app](https://forgeengine.app/)**
 - Machine-readable summary: [forgeengine.app/llms.txt](https://forgeengine.app/llms.txt) · full tool reference: [forgeengine.app/llms-full.txt](https://forgeengine.app/llms-full.txt)
 - Registry manifest: [`server.json`](./server.json)
+
+## License
+
+MIT — see [LICENSE](./LICENSE).
