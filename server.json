@@ -2,13 +2,13 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "app.forgeengine/forge",
   "title": "Forge Engine",
-  "description": "Design source-of-truth for AI coding agents to read a project's systems and propose changes back.",
+  "description": "Design spec + milestones AI coding agents read before building; drift flagged, changes reviewed.",
   "websiteUrl": "https://forgeengine.app/",
   "repository": {
     "url": "https://github.com/alongkornonline2019/forge-mcp",
     "source": "github"
   },
-  "version": "0.1.1",
+  "version": "0.2.0",
   "remotes": [
     {
       "type": "streamable-http",
