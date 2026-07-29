@@ -7,11 +7,27 @@
 // interface Transport { start(); send(msg); close(); set onmessage/onclose/onerror }
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 
+/**
+ * The Authorization header for a request to the hosted server — or NO header at all
+ * when there is no token.
+ *
+ * The distinction matters and is not cosmetic. The hosted server treats discovery
+ * (`initialize`, `tools/list`) as public and only authenticates `tools/call`, but it
+ * VALIDATES an Authorization header whenever one is present. So sending
+ * `Bearer undefined` for a signed-out user turns a working public discovery into a
+ * hard "invalid or revoked key" — the exact opposite of what omitting it does.
+ * Signed out must mean silent, not malformed.
+ */
+export function authHeaders(token) {
+  const t = typeof token === "string" ? token.trim() : "";
+  return t ? { Authorization: `Bearer ${t}` } : {};
+}
+
 export class RemoteTransport {
   constructor({ url, token }) {
     // The Device Token rides as a Bearer header on every request to the hosted server.
     this.inner = new StreamableHTTPClientTransport(new URL(url), {
-      requestInit: { headers: { Authorization: `Bearer ${token}` } },
+      requestInit: { headers: authHeaders(token) },
     });
   }
   set onmessage(fn) {

@@ -5,8 +5,17 @@
 //
 // Invariants enforced here:
 //   2 stdout is sacred — protocol only; ALL diagnostics go to process.stderr.
-//   4 never hang — no token / unreachable server => fail fast with a clear stderr line.
+//   4 never hang — an unreachable server => fail fast with a clear stderr line.
 //   + version negotiation — refuse to forward blindly against a newer server.
+//
+// SIGNED OUT IS A VALID STATE. This used to exit(1) when there was no token, which
+// made the shim stricter than the server it proxies for: the hosted MCP serves
+// `initialize` and `tools/list` to anyone and authenticates only `tools/call`. The
+// cost of that mismatch was paid at first contact — someone who added the MCP config
+// before running `forge login` saw zero tools and "not logged in", with no way to
+// tell there were 54 tools behind it. Now the proxy starts, discovery works, and the
+// server's own (very explicit) auth error answers the first real tool call. "Never
+// hang" is still honoured: we say what state we're in, on stderr, immediately.
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { RemoteTransport } from "../transport.js";
 import { getToken, serverUrl } from "../config.js";
@@ -17,8 +26,9 @@ const err = (s) => process.stderr.write(s.endsWith("\n") ? s : s + "\n");
 export async function runMcp(args) {
   const token = getToken();
   if (!token) {
-    err("Forge: not logged in. Run:  forge login");
-    process.exit(1);
+    // Not an error — a mode. Named on stderr so the state is never a mystery.
+    err("Forge: not signed in — discovery only (the tool list works; calling a tool will not).");
+    err("       Run:  forge login");
   }
   const url = serverUrl();
   // --project is accepted for forward-compat; per-call project_id from the agent is the
