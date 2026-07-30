@@ -1,6 +1,6 @@
 {
   "name": "@forgeengine/cli",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Forge Runtime — connect any MCP client to Forge with one login. Install once, log in once, connect any client with one line.",
   "keywords": [
     "forge",

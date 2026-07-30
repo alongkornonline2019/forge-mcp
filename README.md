@@ -192,8 +192,11 @@ server, and it wants network access the first time. A global install is snappier
 npm i -g @forgeengine/cli@latest    # or: npx -y @forgeengine/cli@latest mcp
 ```
 
-New **tools** never require an upgrade — they live server-side and appear on
-their own. Upgrade for changes to the local runtime itself. `forge doctor` tells
+New **tools** never require an upgrade of this package — they live server-side,
+so there is nothing to reinstall. A client picks them up when it next starts a
+session and asks for the tool list; a long-lived remote connector may need its
+tool list refreshed in the client's own settings before it sees them. Upgrade
+this package only for changes to the local runtime itself. `forge doctor` tells
 you which version you're on and whether it can reach Forge.
 
 ### Commands
@@ -217,8 +220,9 @@ VS Code ────┘        │
 ```
 
 The Runtime is a **thin shim**: no tools, no business logic, no cache, no
-telemetry. All tools live server-side, so new features ship without a client
-update.
+telemetry. All tools live server-side, so shipping a new one never means
+shipping you a new package — see [Upgrading](#upgrading) for what a client still
+has to do to notice.
 
 ---
 
